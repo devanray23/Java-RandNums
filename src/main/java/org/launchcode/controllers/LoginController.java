@@ -1,6 +1,6 @@
 package org.launchcode.controllers;
-
-import com.sun.org.apache.xpath.internal.operations.Mod;
+import org.launchcode.models.forms.LoginForm;
+import org.launchcode.models.forms.RegisterForm;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.Errors;
@@ -8,89 +8,88 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.launchcode.models.User;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
-import java.util.ArrayList;
 
 @Controller
 @RequestMapping("login")
-public class LoginController {
-
-    static ArrayList<User> users = new ArrayList<>();
+public class LoginController extends AbstractController {
 
     //Displays Login Page
-    @RequestMapping(value= "")
-    public String displayLoginPage(Model model){
-        model.addAttribute("title", "Login to RandNums");
+    @RequestMapping(value= "", method = RequestMethod.GET)
+    public String displayLoginPage(Model model, HttpServletRequest request){
+        model.addAttribute("sessionActive", isSessionActive(request.getSession()));
+        model.addAttribute("title", "Login");
+        model.addAttribute("loginForm", new LoginForm());
         return "login/index";
     }
 
     //Displays Register Page
     @RequestMapping(value="register", method = RequestMethod.GET)
-    public String displayRegisterForm(Model model){
-        model.addAttribute("title", "Register to RandNums");
-        model.addAttribute("user", new User());
+    public String displayRegisterForm(Model model, HttpServletRequest request){
+        model.addAttribute("sessionActive", isSessionActive(request.getSession()));
+        model.addAttribute("title", "Register");
+        model.addAttribute("registerForm", new RegisterForm());
 
         return "login/register";
     }
 
     //Processes Register Form and validates user input
-    @RequestMapping(value= "register", method = RequestMethod.POST)
-    public String processRegisterForm(@ModelAttribute @Valid User user,
-                                      Errors errors, @RequestParam String newVerifyPassword, Model model){
+    @RequestMapping(value = "register", method = RequestMethod.POST)
+    public String register(@ModelAttribute @Valid RegisterForm registerForm, Errors errors, HttpServletRequest request, Model model) {
 
-        if (errors.hasErrors()){
-
+        if (errors.hasErrors()) {
             model.addAttribute("title", "Register to RandNums");
-
-            if(!user.getPassword().equals(newVerifyPassword)){
-                model.addAttribute("verifyError", "Passwords do not match.");
-            }
-            for(User existing: users){
-                if(existing.getUsername().equals(user.getUsername())){
-                    model.addAttribute("existingError", "User already exists.");
-                }
-            }
-
+            model.addAttribute("sessionActive", isSessionActive(request.getSession()));
             return "login/register";
         }
 
-        users.add(user);
-        model.addAttribute("user", user);
-        model.addAttribute("welcome", "Welcome " + user.getUsername());
-        model.addAttribute("title", "Welcome!");
-        return "home/index";
-    }
+        User existingUser = userDao.findByUsername(registerForm.getUsername());
 
-
-    //Processes Login Form and validates user input
-    @RequestMapping(value="", method = RequestMethod.POST)
-    public String processLoginForm(Model model, @RequestParam String usernameLogin,
-                                   @RequestParam String passwordLogin){
-
-        String templateName = "login/index";
-        String titleDisplay = "Login to RandNums!";
-
-        for (User user: users){
-            if(user.getUsername().equals(usernameLogin)){
-                if(user.getPassword().equals(passwordLogin)){
-                    model.addAttribute("welcome", "Welcome " + user.getUsername());
-                    model.addAttribute("title", "Welcome!");
-                    return "home/index";
-                }else{
-                    model.addAttribute("loginError", "Incorrect Password");
-                    model.addAttribute("title", "Login to Randums");
-                    return "login/index";
-                }
-            }
+        if (existingUser != null) {
+            errors.rejectValue("username", "username.alreadyexists", "A user with that username already exists");
+            model.addAttribute("title", "Register");
+            model.addAttribute("sessionActive", isSessionActive(request.getSession()));
+            return "login/register";
         }
 
-        model.addAttribute("loginError", "User does not exist");
-        model.addAttribute("title", titleDisplay);
-        return templateName;
+        User newUser = new User(registerForm.getUsername(), registerForm.getEmail(), registerForm.getPassword());
+
+        userDao.save(newUser);
+        setUserInSession(request.getSession(), newUser);
+
+        return "redirect:/home";
     }
 
+    //Processes Login Form and validates user input
+    @RequestMapping(value = "", method = RequestMethod.POST)
+    public String login(@ModelAttribute @Valid LoginForm loginForm, Errors errors, HttpServletRequest request, Model model) {
 
+        if (errors.hasErrors()) {
+            model.addAttribute("title", "Login");
+            return "login/index";
+        }
+
+        User theUser = userDao.findByUsername(loginForm.getUsername());
+        String password = loginForm.getPassword();
+
+        if (theUser == null) {
+            errors.rejectValue("username", "user.invalid", "The given username does not exist");
+            model.addAttribute("sessionActive", isSessionActive(request.getSession()));
+            model.addAttribute("title", "Login");
+            return "login/index";
+        }
+
+        if (!theUser.isMatchingPassword(password)) {
+            errors.rejectValue("password", "password.invalid", "Invalid password");
+            model.addAttribute("sessionActive", isSessionActive(request.getSession()));
+            model.addAttribute("title", "Login");
+            return "login/index";
+        }
+
+        setUserInSession(request.getSession(), theUser);
+
+        return "redirect:/home";
+    }
 }
 

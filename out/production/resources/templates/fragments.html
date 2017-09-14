@@ -9,10 +9,26 @@
 </head>
 <body>
 
-<nav th:fragment="navigation">
-    <a href="/login">Login</a> |
-    <a href="/login/register">Register</a>
-</nav>
+<div th:fragment="page-header" class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container">
+        <div class="navbar-header">
+            <a th:href="@{/}" class="navbar-brand">RandNums</a>
+        </div>
+        <div th:if="${sessionActive} == false" class="navbar-collapse collapse">
+            <ul class="nav navbar-nav">
+                <li><a th:href="@{/login}">Login</a></li>
+                <li><a th:href="@{/login/register}">Register</a></li>
+            </ul>
+        </div>
+    </div>
+    <div th:if="${sessionActive} == true" class="navbar-collapse collapse">
+        <ul class="nav navbar-nav">
+            <li><a th:href="@{/home/randomize}">Randomize</a></li>
+            <li><a th:href="@{/home/preferences}">Preferences</a></li>
+            <li><a th:href="@{/login/logout}">LogOut</a></li>
+        </ul>
+    </div>
+</div>
 
 </body>
 </html>

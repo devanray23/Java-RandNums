@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https//www.thymeleaf.org">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+
+<div th:replace="fragments :: page-header"></div>
+
+<h1 th:text="${title}" style="padding-top:100px">Default Title</h1>
+
+<hr />
+
+<a href="@{/home/setpreferences}">Edit Preferences</a>
+
+<h3>Budget:</h3>
+<p th:text="${budget}"></p>
+
+<h3>Max Calorie Intake:</h3>
+<p th:text="${calorie}"></p>
+
+<table class="table table-condensed">
+    <thead>
+    <tr>
+        <th>Current Accepted Cuisines</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="cuisine : ${cuisines}">
+        <td th:text="${cuisine}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<a href="@{/home/results}">Randomize!</a>
+
+
+</body>
+</html>

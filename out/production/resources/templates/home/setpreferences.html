@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="https//www.thymeleaf.org">
+<head th:replace="fragments :: head"></head>
+<body class="container">
+
+<div th:replace="fragments :: page-header"></div>
+
+<h1 th:text="${title}" style="padding-top:100px">Default Title</h1>
+
+<hr />
+
+<form method="post" style="max-width:500px;">
+    <div class="checkbox">
+        <label for="checkbox">Cuisines</label>
+        <span th:each="cuisine : ${cuisines}">
+            <input type="checkbox" class="form-control" id="checkbox" value="${cuisine}" th:text="${cuisine}">
+        </span>
+    </div>
+    <div class="form-group">
+        <label for="calorie">Max Calorie Intake:</label>
+        <select class="form-control" id="calorie">
+            <option>200</option>
+            <option>300</option>
+            <option>400</option>
+            <option>500</option>
+            <option>600</option>
+            <option>700</option>
+            <option>800</option>
+            <option>900</option>
+            <option>None</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="budget">Budget:</label>
+        <select class="form-control" id="budget">
+            <option>5</option>
+            <option>10</option>
+            <option>15</option>
+            <option>20</option>
+            <option>25</option>
+            <option>30</option>
+            <option>None</option>
+        </select>
+    </div>
+    <button type="submit" class="btn btn-default">Save</button>
+</form>
+
+</body>
+</html>
