@@ -36,9 +36,7 @@ public class User{
             inverseJoinColumns = @JoinColumn(name = "cuisine_id", referencedColumnName = "id"))
     private Set<Cuisine> cuisines;
 
-    public Set<Cuisine> getCuisines(){
-        return cuisines;
-    }
+    public Set<Cuisine> getCuisines(){ return cuisines; }
 
     public void setCuisines(Set<Cuisine> cuisines){
         this.cuisines = cuisines;
